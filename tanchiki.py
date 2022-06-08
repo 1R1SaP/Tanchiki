@@ -9,21 +9,23 @@ pygame.init()
 #img_back = image.load(os.path.join("images", "background1.png"))
 img_tank1 = image.load(os.path.join('images', "tank1_up.png"))
 img_tank2 = image.load(os.path.join('images', "tank2_up.png"))
+img_bullet = image.load(os.path.join('images', "bullet.png"))
+img_speed = image.load(os.path.join('images', "Speed.png"))
+
 
 win_width = 800
 win_height = 550
 display.set_caption("Tanchiki")
 window = display.set_mode((win_width, win_height))
-background = transform.scale(image.load(os.path.join(
-    'images', 'background1.png')), (win_width, win_height))
+background = transform.scale(image.load(os.path.join('images', 'background1.png')), (win_width, win_height))
 stepIndex = 0
 step = 1
-p1_move = [False] * 4  # ? up, down, left, right
-p2_move = [False] * 4  # ? up, down, left, right
+p1_move = [True, False, False, False]  # ? up, down, left, right
+p2_move = [True, False, False, False]  # ? up, down, left, right
 
 stationary = pygame.image.load(os.path.join('images', "tank1_up.png"))
 stationary1 = pygame.image.load(os.path.join('images', "tank2_up.png"))
-
+#картинки для анімації
 up = [
     image.load(os.path.join('images', "tank1_up.png")),
     image.load(os.path.join('images', "tank1_up_anim.png"))]
@@ -70,16 +72,16 @@ class Player(GameSprite):
         if keys[K_a] and self.rect.x > -5:
             self.rect.x -= self.speed
             p1_move = [False, False, True, False]
-        if keys[K_d] and self.rect.x < 705:
+        elif keys[K_d] and self.rect.x < 705:
             self.rect.x += self.speed
             p1_move = [False, False, False, True]
-        if keys[K_w] and self.rect.y > 5:
+        elif keys[K_w] and self.rect.y > 5:
             self.rect.y -= self.speed
             p1_move = [True, False, False, False]
-        if keys[K_s] and self.rect.y < 450:
+        elif keys[K_s] and self.rect.y < 450:
             self.rect.y += self.speed
             p1_move = [False, True, False, False]
-
+    #Функція відповідає за анімацію 1 танка
     def reset(self):
         if p1_move[0]:
             if self.stepIndex > 1:
@@ -101,6 +103,19 @@ class Player(GameSprite):
                 self.stepIndex = 0
             window.blit(right[self.stepIndex], (self.rect.x, self.rect.y))
             self.stepIndex += 1
+    #Функція закоментована тому що видає помилки, потрібно виправити
+    #def collide(self, targets):
+    #    global up, down, left, right
+    #    for target in targets:
+    #        if sprite.spritecollide(self, targets, False):
+    #            if abs(self.rect.top - target.rect.bottom) < 5:
+    #                up = False
+    #            if abs(self.rect.bottom - target.rect.top) < 5:
+    #                down = False
+    #            if abs(self.rect.left - target.rect.right) < 5:
+    #                left = False
+    #            if abs(self.rect.right - target.rect.left) < 5:
+    #                right = False
 
 
 class Player2(GameSprite):
@@ -110,16 +125,16 @@ class Player2(GameSprite):
         if keys[K_LEFT] and self.rect.x > -5:
             self.rect.x -= self.speed
             p2_move = [False, False, True, False]
-        if keys[K_RIGHT] and self.rect.x < 705:
+        elif keys[K_RIGHT] and self.rect.x < 705:
             self.rect.x += self.speed
             p2_move = [False, False, False, True]
-        if keys[K_UP] and self.rect.y > 5:
+        elif keys[K_UP] and self.rect.y > 5:
             self.rect.y -= self.speed
             p2_move = [True, False, False, False]
-        if keys[K_DOWN] and self.rect.y < 450:
+        elif keys[K_DOWN] and self.rect.y < 450:
             self.rect.y += self.speed
             p2_move = [False, True, False, False]
-
+    #Функція відповідає за анімацію 1 танка
     def reset(self):
         if p2_move[0]:
             if self.stepIndex > 1:
@@ -141,24 +156,70 @@ class Player2(GameSprite):
                 self.stepIndex = 0
             window.blit(right1[self.stepIndex], (self.rect.x, self.rect.y))
             self.stepIndex += 1
+#клас стіни
+class Wall(sprite.Sprite):
+    def __init__(self, wall_image, wall_x, wall_y, x_size, y_size):
+        super().__init__()
+        self.image = transform.scale(wall_image, (x_size, y_size))
+        self.rect = self.image.get_rect()
+        self.rect.x = wall_x
+        self.rect.y = wall_y
+    def draw_wall(self):
+        window.blit(self.image, (self.rect.x, self.rect.y))
+#клас кулі
+class Bullet(GameSprite):
+    def __init__(self, bullet_image,  bullet_x, bullet_y,  bullet_speed, b_size_x, b_size_y):
+        super().__init__()
+        self.image = transform.scale(bullet_image, (b_size_x, b_size_y))
+        self.rect = self.image.get_rect()
+        self.rect.x = bullet_x
+        self.rect.y = bullet_y
+        self.speed = bullet_speed
 
 
 run = True
 finish = False
-
+#координати танків
 x1 = 10
 y1 = 220
 x2 = 700
 y2 = 220
-
+#координати для посилень
+boost_x1 = 350
+boost_y1 = 20
+boost_x2 = 250
+boost_y2 = 430
+boost_x3 = 350
+boost_y3 = 250
+#надписи
 font.init()
 font = font.Font(None, 50)
 font_p1 = font.render("P1 HP:", True, (0, 0, 0))
 font_p2 = font.render("P2 HP:", True, (0, 0, 0))
-
-player1 = Player(img_tank1, 4, x1, y1, 80, 80)
-player2 = Player2(img_tank2, 4, x2, y2, 80, 80)
+win_p1 = font.render("Player 1 Win", True, (0, 255, 255))
+win_p2 = font.render("Player 2 Win", True, (0, 255, 255))
+#танки
+player1 = Player(img_tank1, 5, x1, y1, 20, 20)
+player2 = Player2(img_tank2, 5, x2, y2, 20, 20)
+p1_hp = 3
+p2_hp = 3
 speed = 5
+#стіни
+w1 = Wall(image.load(os.path.join('images', "BIGwoll3.png")), 150, 62, 180, 68)
+w2 = Wall(image.load(os.path.join('images', "BIGwoll3.png")), 464, 62, 182, 68)
+w3 = Wall(image.load(os.path.join('images', "BIGwoll3.png")), 148, 405, 180, 68)
+w4 = Wall(image.load(os.path.join('images', "BIGwoll3.png")), 476, 405, 182, 68)
+w5 = Wall(image.load(os.path.join('images', "WallMini.png")), 247, 232, 70, 75)
+w6 = Wall(image.load(os.path.join('images', "WallMini.png")), 477, 234, 70, 75)
+walls = sprite.Group()
+walls.add(w1)
+walls.add(w2)
+walls.add(w3)
+walls.add(w4)
+walls.add(w5)
+walls.add(w6)
+
+bullets = sprite.Group()
 
 while run:
     for e in event.get():
@@ -169,12 +230,24 @@ while run:
         window.blit(background, (0, 0))
         window.blit(font_p1, (10, 10))
         window.blit(font_p2, (650, 10))
+        #функція для стрільби(ще не готова)
+        def fire(x, y):
+            bullet = Bullet(img_bullet, x, y, 15, 10, 10)
 
     player1.update()
     player1.reset()
 
     player2.update()
     player2.reset()
+
+    w1.draw_wall()
+    w2.draw_wall()
+    w3.draw_wall()
+    w4.draw_wall()
+    w5.draw_wall()
+    w6.draw_wall()
+
+    #player1.collide(walls)
 
     time.delay(50)
     display.update()
