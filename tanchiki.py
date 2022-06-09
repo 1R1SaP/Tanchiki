@@ -54,6 +54,9 @@ right1 = [
     image.load(os.path.join('images', "tank2_right_anim.png"))]
 
 
+move_up, move_down, move_left, move_right = True, True, True, True
+move_up1, move_down1, move_left1, move_right1 = True, True, True, True
+
 class GameSprite(sprite.Sprite):
     def __init__(self, player_image, player_speed, player_x, player_y, size_x, size_y):
         super().__init__()
@@ -69,16 +72,16 @@ class Player(GameSprite):
     def update(self):
         keys = key.get_pressed()
         global p1_move
-        if keys[K_a] and self.rect.x > -5:
+        if keys[K_a] and self.rect.x > -5 and move_left:
             self.rect.x -= self.speed
             p1_move = [False, False, True, False]
-        elif keys[K_d] and self.rect.x < 705:
+        elif keys[K_d] and self.rect.x < 705 and move_right:
             self.rect.x += self.speed
             p1_move = [False, False, False, True]
-        elif keys[K_w] and self.rect.y > 5:
+        elif keys[K_w] and self.rect.y > 5 and move_up:
             self.rect.y -= self.speed
             p1_move = [True, False, False, False]
-        elif keys[K_s] and self.rect.y < 450:
+        elif keys[K_s] and self.rect.y < 450 and move_down:
             self.rect.y += self.speed
             p1_move = [False, True, False, False]
     #Функція відповідає за анімацію 1 танка
@@ -103,35 +106,40 @@ class Player(GameSprite):
                 self.stepIndex = 0
             window.blit(right[self.stepIndex], (self.rect.x, self.rect.y))
             self.stepIndex += 1
-    #Функція закоментована тому що видає помилки, потрібно виправити
-    #def collide(self, targets):
-    #    global up, down, left, right
-    #    for target in targets:
-    #        if sprite.spritecollide(self, targets, False):
-    #            if abs(self.rect.top - target.rect.bottom) < 5:
-    #                up = False
-    #            if abs(self.rect.bottom - target.rect.top) < 5:
-    #                down = False
-    #            if abs(self.rect.left - target.rect.right) < 5:
-    #                left = False
-    #            if abs(self.rect.right - target.rect.left) < 5:
-    #                right = False
+    def collide(self, targets):
+        global move_up, move_down, move_left, move_right
+        for target in targets:
+            if sprite.spritecollide(self, targets, False):
+                if abs(self.rect.top - target.rect.bottom) < 6:
+                    move_up = False
+                    self.rect.y += 1
+                if abs(self.rect.bottom - target.rect.top) < 6:
+                   move_down = False
+                   self.rect.y -= 1
+                if abs(self.rect.left - target.rect.right) < 6:
+                    move_left = False
+                    self.rect.x += 1
+                if abs(self.rect.right - target.rect.left) < 6:
+                    move_right = False
+                    self.rect.x -= 1
+            else:
+                move_up, move_down, move_left, move_right = True, True, True, True
 
 
 class Player2(GameSprite):
     def update(self):
         keys = key.get_pressed()
         global p2_move
-        if keys[K_LEFT] and self.rect.x > -5:
+        if keys[K_LEFT] and self.rect.x > -5 and move_left1:
             self.rect.x -= self.speed
             p2_move = [False, False, True, False]
-        elif keys[K_RIGHT] and self.rect.x < 705:
+        elif keys[K_RIGHT] and self.rect.x < 705 and move_right1:
             self.rect.x += self.speed
             p2_move = [False, False, False, True]
-        elif keys[K_UP] and self.rect.y > 5:
+        elif keys[K_UP] and self.rect.y > 5 and move_up1:
             self.rect.y -= self.speed
             p2_move = [True, False, False, False]
-        elif keys[K_DOWN] and self.rect.y < 450:
+        elif keys[K_DOWN] and self.rect.y < 450 and move_down1:
             self.rect.y += self.speed
             p2_move = [False, True, False, False]
     #Функція відповідає за анімацію 1 танка
@@ -156,6 +164,25 @@ class Player2(GameSprite):
                 self.stepIndex = 0
             window.blit(right1[self.stepIndex], (self.rect.x, self.rect.y))
             self.stepIndex += 1
+
+    def collide(self, targets):
+        global move_up1, move_down1, move_left1, move_right1
+        for target in targets:
+            if sprite.spritecollide(self, targets, False):
+                if abs(self.rect.top - target.rect.bottom) < 6:
+                    move_up1 = False
+                    self.rect.y += 1
+                if abs(self.rect.bottom - target.rect.top) < 6:
+                    move_down1 = False
+                    self.rect.y -= 1
+                if abs(self.rect.left - target.rect.right) < 6:
+                    move_left1 = False
+                    self.rect.x += 1
+                if abs(self.rect.right - target.rect.left) < 6:
+                    move_right1 = False
+                    self.rect.x -= 1
+            else:
+                move_up1, move_down1, move_left1, move_right1 = True, True, True, True
 #клас стіни
 class Wall(sprite.Sprite):
     def __init__(self, wall_image, wall_x, wall_y, x_size, y_size):
@@ -199,8 +226,8 @@ font_p2 = font.render("P2 HP:", True, (0, 0, 0))
 win_p1 = font.render("Player 1 Win", True, (0, 255, 255))
 win_p2 = font.render("Player 2 Win", True, (0, 255, 255))
 #танки
-player1 = Player(img_tank1, 5, x1, y1, 20, 20)
-player2 = Player2(img_tank2, 5, x2, y2, 20, 20)
+player1 = Player(img_tank1, 5, x1, y1, 100, 100)
+player2 = Player2(img_tank2, 5, x2, y2, 100, 100)
 p1_hp = 3
 p2_hp = 3
 speed = 5
@@ -247,7 +274,8 @@ while run:
     w5.draw_wall()
     w6.draw_wall()
 
-    #player1.collide(walls)
+    player1.collide(walls)
+    player2.collide(walls)
 
     time.delay(50)
     display.update()
